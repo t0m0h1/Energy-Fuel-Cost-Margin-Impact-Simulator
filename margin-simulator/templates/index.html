@@ -65,11 +65,19 @@
         </p>
       </div>
 
-      <!-- Status readout, signature terminal-style ticker -->
-      <div class="font-mono text-xs text-muted border border-hairline rounded-md px-4 py-2 bg-panel">
-        <div class="flex items-center gap-2">
-          <span id="statusDot" class="w-2 h-2 rounded-full bg-teal shadow-[0_0_8px_2px_rgba(53,199,166,0.6)]"></span>
-          <span>SCENARIO: <span id="statusLabel" class="text-ink">BASELINE</span></span>
+      <div class="flex items-center gap-3">
+        <!-- Status readout, signature terminal-style ticker -->
+        <div class="font-mono text-xs text-muted border border-hairline rounded-md px-4 py-2 bg-panel">
+          <div class="flex items-center gap-2">
+            <span id="statusDot" class="w-2 h-2 rounded-full bg-teal shadow-[0_0_8px_2px_rgba(53,199,166,0.6)]"></span>
+            <span>SCENARIO: <span id="statusLabel" class="text-ink">BASELINE</span></span>
+          </div>
+        </div>
+
+        <!-- Account -->
+        <div class="font-mono text-xs text-muted border border-hairline rounded-md px-4 py-2 bg-panel flex items-center gap-3">
+          <span class="text-ink">{{ email }}</span>
+          <a href="{{ url_for('logout') }}" class="text-muted hover:text-amber transition">Sign out</a>
         </div>
       </div>
     </div>
@@ -163,6 +171,30 @@
           Logistics <span class="text-ink font-medium">70%</span>, Electricity
           <span class="text-ink font-medium">30%</span> (partial generation exposure).
         </p>
+      </div>
+
+      <!-- Saved scenarios -->
+      <div class="bg-panel border border-hairline rounded-lg p-5">
+        <h2 class="font-display text-sm font-semibold uppercase tracking-wide text-muted mb-4">
+          Saved Scenarios
+        </h2>
+
+        <div class="flex gap-2 mb-4">
+          <input id="scenarioName" type="text" placeholder="Scenario name, e.g. Q3 Diesel Spike"
+            class="flex-1 bg-raised border border-hairline rounded-md px-3 py-2 text-sm
+                   focus:outline-none focus:ring-2 focus:ring-amber/60 focus:border-amber/60 transition" />
+          <button id="saveScenarioBtn"
+            class="bg-amber text-void text-sm font-semibold px-4 rounded-md hover:brightness-110 transition">
+            Save
+          </button>
+        </div>
+
+        <p id="scenarioMsg" class="text-[11px] mb-3 hidden"></p>
+
+        <ul id="scenarioList" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+          <!-- populated by simulator.js -->
+          <li class="text-[11px] text-muted">No saved scenarios yet.</li>
+        </ul>
       </div>
     </section>
 
