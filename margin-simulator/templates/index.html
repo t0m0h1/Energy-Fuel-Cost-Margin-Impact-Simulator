@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Energy &amp; Fuel Cost Margin Impact Simulator</title>
+
+<!-- Tailwind (CDN, config inline below) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<!-- Type system: Space Grotesk (display), Inter (body/UI), IBM Plex Mono (data/numbers) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
+  rel="stylesheet"
+/>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+<script>
+  // ---- Design token system, exposed to Tailwind's arbitrary-value engine ----
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          void:      '#0A0D12', // page background
+          panel:     '#12161F', // card surface
+          raised:    '#161B26', // elevated / hover surface
+          hairline:  '#232B3A', // borders, dividers
+          ink:       '#E8ECF1', // primary text
+          muted:     '#7C8798', // secondary text
+          amber:     '#E3A83B', // oil-shock / energy accent
+          teal:      '#35C7A6', // baseline / protected-margin accent
+          red:       '#E5484D', // compression / risk accent
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body:    ['Inter', 'sans-serif'],
+          mono:    ['"IBM Plex Mono"', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+</head>
+
+<body class="bg-void text-ink font-body antialiased min-h-screen">
+
+  <!-- ============================= HEADER ============================= -->
+  <header class="border-b border-hairline">
+    <div class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <p class="font-mono text-[11px] tracking-[0.25em] text-amber uppercase mb-1">
+          Live Margin Engine
+        </p>
+        <h1 class="font-display text-2xl md:text-[28px] font-semibold leading-tight">
+          Energy &amp; Fuel Cost Margin Impact Simulator
+        </h1>
+        <p class="text-muted text-sm mt-1 max-w-xl">
+          Model how an oil price shock propagates through electricity, fleet fuel and
+          logistics costs — and see the price increase required to hold your margin.
+        </p>
+      </div>
+
+      <!-- Status readout, signature terminal-style ticker -->
+      <div class="font-mono text-xs text-muted border border-hairline rounded-md px-4 py-2 bg-panel">
+        <div class="flex items-center gap-2">
+          <span id="statusDot" class="w-2 h-2 rounded-full bg-teal shadow-[0_0_8px_2px_rgba(53,199,166,0.6)]"></span>
+          <span>SCENARIO: <span id="statusLabel" class="text-ink">BASELINE</span></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================= MAIN GRID ============================= -->
+  <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- --------------------------------------------------------------- -->
+    <!-- LEFT COLUMN: INPUTS                                              -->
+    <!-- --------------------------------------------------------------- -->
+    <section class="lg:col-span-4 space-y-6">
+
+      <!-- Cost structure inputs -->
+      <div class="bg-panel border border-hairline rounded-lg p-5">
+        <h2 class="font-display text-sm font-semibold uppercase tracking-wide text-muted mb-4">
+          Monthly Cost Structure
+        </h2>
+
+        <div class="space-y-4">
+          <div>
+            <label for="revenue" class="block text-xs text-muted mb-1.5">Monthly Revenue</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted font-mono text-sm">$</span>
+              <input id="revenue" type="number" min="0" step="1000" value="500000"
+                class="w-full bg-raised border border-hairline rounded-md pl-7 pr-3 py-2.5 font-mono text-sm
+                       text-ink focus:outline-none focus:ring-2 focus:ring-amber/60 focus:border-amber/60 transition" />
+            </div>
+          </div>
+
+          <div>
+            <label for="electricity" class="block text-xs text-muted mb-1.5">Electricity Expense</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted font-mono text-sm">$</span>
+              <input id="electricity" type="number" min="0" step="500" value="40000"
+                class="w-full bg-raised border border-hairline rounded-md pl-7 pr-3 py-2.5 font-mono text-sm
+                       text-ink focus:outline-none focus:ring-2 focus:ring-amber/60 focus:border-amber/60 transition" />
+            </div>
+          </div>
+
+          <div>
+            <label for="fuel" class="block text-xs text-muted mb-1.5">Fuel / Fleet Expense</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted font-mono text-sm">$</span>
+              <input id="fuel" type="number" min="0" step="500" value="60000"
+                class="w-full bg-raised border border-hairline rounded-md pl-7 pr-3 py-2.5 font-mono text-sm
+                       text-ink focus:outline-none focus:ring-2 focus:ring-amber/60 focus:border-amber/60 transition" />
+            </div>
+          </div>
+
+          <div>
+            <label for="logistics" class="block text-xs text-muted mb-1.5">Logistics Expense</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted font-mono text-sm">$</span>
+              <input id="logistics" type="number" min="0" step="500" value="35000"
+                class="w-full bg-raised border border-hairline rounded-md pl-7 pr-3 py-2.5 font-mono text-sm
+                       text-ink focus:outline-none focus:ring-2 focus:ring-amber/60 focus:border-amber/60 transition" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Oil price shock controls -->
+      <div class="bg-panel border border-hairline rounded-lg p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-display text-sm font-semibold uppercase tracking-wide text-muted">
+            Oil Price Shock
+          </h2>
+          <span id="shockReadout" class="font-mono text-lg text-amber font-semibold">+0%</span>
+        </div>
+
+        <!-- Preset toggle buttons -->
+        <div class="grid grid-cols-4 gap-2 mb-4" id="shockPresets">
+          <button data-shock="10"  class="shock-btn">+10%</button>
+          <button data-shock="25"  class="shock-btn">+25%</button>
+          <button data-shock="50"  class="shock-btn">+50%</button>
+          <button data-shock="100" class="shock-btn">+100%</button>
+        </div>
+
+        <!-- Fine-grained slider, 0-150% -->
+        <input id="shockSlider" type="range" min="0" max="150" step="1" value="0"
+               class="w-full accent-amber cursor-pointer" />
+        <div class="flex justify-between text-[10px] font-mono text-muted mt-1">
+          <span>0%</span>
+          <span>75%</span>
+          <span>150%</span>
+        </div>
+
+        <p class="text-[11px] text-muted mt-4 leading-relaxed">
+          Pass-through model: Fuel/Fleet absorbs <span class="text-ink font-medium">100%</span> of the shock,
+          Logistics <span class="text-ink font-medium">70%</span>, Electricity
+          <span class="text-ink font-medium">30%</span> (partial generation exposure).
+        </p>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------------- -->
+    <!-- RIGHT COLUMN: OUTPUTS                                            -->
+    <!-- --------------------------------------------------------------- -->
+    <section class="lg:col-span-8 space-y-6">
+
+      <!-- Executive KPI summary card -->
+      <div class="bg-gradient-to-br from-panel to-raised border border-hairline rounded-lg p-5">
+        <h2 class="font-display text-sm font-semibold uppercase tracking-wide text-muted mb-4">
+          Executive Summary
+        </h2>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+          <!-- Recommended price increase — hero KPI -->
+          <div class="col-span-2 md:col-span-1 bg-void/60 border border-amber/30 rounded-md p-4 flex flex-col justify-between">
+            <span class="text-[11px] text-muted uppercase tracking-wide">Recommended Price Increase</span>
+            <span id="kpiPriceIncrease" class="font-mono text-3xl font-bold text-amber mt-2">0.00%</span>
+            <span class="text-[11px] text-muted mt-1">to fully offset margin loss</span>
+          </div>
+
+          <div class="bg-void/60 border border-hairline rounded-md p-4 flex flex-col justify-between">
+            <span class="text-[11px] text-muted uppercase tracking-wide">Baseline Net Margin</span>
+            <span id="kpiBaselineMargin" class="font-mono text-2xl font-semibold text-ink mt-2">0.00%</span>
+          </div>
+
+          <div class="bg-void/60 border border-hairline rounded-md p-4 flex flex-col justify-between">
+            <span class="text-[11px] text-muted uppercase tracking-wide">Shocked Net Margin</span>
+            <span id="kpiShockedMargin" class="font-mono text-2xl font-semibold text-red mt-2">0.00%</span>
+          </div>
+
+          <div class="bg-void/60 border border-hairline rounded-md p-4 flex flex-col justify-between">
+            <span class="text-[11px] text-muted uppercase tracking-wide">Margin Compression</span>
+            <span id="kpiCompression" class="font-mono text-2xl font-semibold text-red mt-2">0.00 pts</span>
+          </div>
+        </div>
+
+        <!-- Signature element: margin compression gauge -->
+        <div class="mt-5">
+          <div class="flex justify-between text-[11px] font-mono text-muted mb-1.5">
+            <span>MARGIN GAUGE</span>
+            <span id="gaugeAbsDollars">$0 / mo at risk</span>
+          </div>
+          <div class="relative h-3 rounded-full bg-void border border-hairline overflow-hidden">
+            <div id="gaugeBaseline" class="absolute top-0 left-0 h-full bg-teal/40"></div>
+            <div id="gaugeShocked" class="absolute top-0 left-0 h-full bg-red transition-all duration-300 ease-out"></div>
+            <div id="gaugeMarker" class="absolute top-0 h-full w-[2px] bg-ink/80 transition-all duration-300 ease-out"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="bg-panel border border-hairline rounded-lg p-5">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-display text-sm font-semibold uppercase tracking-wide text-muted">
+            Baseline vs. Shocked Cost &amp; Margin
+          </h2>
+          <div class="flex items-center gap-4 text-[11px] font-mono text-muted">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-teal/70 inline-block"></span>Baseline</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-amber inline-block"></span>Shocked</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red inline-block"></span>Net Margin %</span>
+          </div>
+        </div>
+        <div class="h-80">
+          <canvas id="marginChart"></canvas>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-muted leading-relaxed px-1">
+        Model is directional and intended for scenario planning, not audited forecasting.
+        Pass-through ratios are editable in <code class="font-mono text-ink/80">simulator.js</code>.
+      </p>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
+</body>
+</html>
