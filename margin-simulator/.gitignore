@@ -1,0 +1,16 @@
+# Local SQLite database (created automatically on first run)
+data.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Environment / secrets
+.env
+
+# OS / editor cruft
+.DS_Store
+.vscode/

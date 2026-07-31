@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create Account — Margin Impact Simulator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+<script>
+  tailwind.config = {
+    theme: { extend: { colors: {
+      void:'#0A0D12', panel:'#12161F', raised:'#161B26', hairline:'#232B3A',
+      ink:'#E8ECF1', muted:'#7C8798', amber:'#E3A83B', teal:'#35C7A6', red:'#E5484D',
+    }, fontFamily: { display:['"Space Grotesk"','sans-serif'], body:['Inter','sans-serif'], mono:['"IBM Plex Mono"','monospace'] } } }
+  };
+</script>
+</head>
+<body class="bg-void text-ink font-body antialiased min-h-screen flex items-center justify-center px-4">
+
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-6">
+      <p class="font-mono text-[11px] tracking-[0.25em] text-amber uppercase mb-1">Live Margin Engine</p>
+      <h1 class="font-display text-xl font-semibold">Create your account</h1>
+      <p class="text-muted text-sm mt-1">Save scenarios and revisit them anytime.</p>
+    </div>
+
+    <div class="bg-panel border border-hairline rounded-lg p-6">
+      {% if error %}
+      <div class="bg-red/10 border border-red/30 text-red text-sm rounded-md px-3 py-2 mb-4">
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="POST" class="space-y-4">
+        <div>
+          <label for="email" class="block text-xs text-muted mb-1.5">Email</label>
+          <input id="email" name="email" type="email" required autofocus
+            class="w-full bg-raised border border-hairline rounded-md px-3 py-2.5 text-sm
+                   focus:outline-none focus:ring-2 focus:ring-amber/60 focus:border-amber/60 transition" />
+        </div>
+        <div>
+          <label for="password" class="block text-xs text-muted mb-1.5">Password</label>
+          <input id="password" name="password" type="password" required minlength="8"
+            class="w-full bg-raised border border-hairline rounded-md px-3 py-2.5 text-sm
+                   focus:outline-none focus:ring-2 focus:ring-amber/60 focus:border-amber/60 transition" />
+          <p class="text-[11px] text-muted mt-1">At least 8 characters.</p>
+        </div>
+        <button type="submit"
+          class="w-full bg-amber text-void font-semibold text-sm rounded-md py-2.5 mt-2
+                 hover:brightness-110 transition">
+          Create account
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-sm text-muted mt-5">
+      Already have an account? <a href="{{ url_for('login') }}" class="text-amber hover:underline">Sign in</a>
+    </p>
+  </div>
+</body>
+</html>
